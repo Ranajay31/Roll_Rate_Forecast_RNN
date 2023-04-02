@@ -1,0 +1,44 @@
+#STATIONARITY
+
+import numpy as np
+import pandas as pd
+from statsmodels.tsa.stattools import adfuller
+
+# Load the data into a pandas DataFrame
+data = pd.read_csv("path/to/data.csv")
+
+# Convert the date column to a datetime format
+data["date"] = pd.to_datetime(data["date"], format="%b-%Y")
+
+# Set the date column as the index of the DataFrame
+data.set_index("date", inplace=True)
+
+# Define a function to test for stationarity using the Augmented Dickey-Fuller test
+def test_stationarity(data):
+    # Calculate the rolling mean and standard deviation of the data
+    rolling_mean = data.rolling(window=12).mean()
+    rolling_std = data.rolling(window=12).std()
+
+    # Plot the data, rolling mean, and rolling standard deviation
+    import matplotlib.pyplot as plt
+    plt.plot(data, label="Original Data")
+    plt.plot(rolling_mean, label="Rolling Mean")
+    plt.plot(rolling_std, label="Rolling Std")
+    plt.legend()
+    plt.show()
+
+    # Perform the Augmented Dickey-Fuller test
+    adf_result = adfuller(data)
+
+    # Print the test statistic and p-value
+    print(f"ADF Statistic: {adf_result[0]}")
+    print(f"p-value: {adf_result[1]}")
+
+    # Interpret the test results
+    if adf_result[1] < 0.05:
+        print("The data is stationary.")
+    else:
+        print("The data is non-stationary.")
+
+# Test for stationarity on the entire dataset
+test_stationarity(data["roll_rates"])

@@ -80,6 +80,6 @@ def generate_rnn_predictions(model, scaler, lookback, periods):
     return future_data
 
 # Fit an RNN model on the entire dataset and generate predictions for the next 12, 18, and 60 months
-model, scaler = fit_rnn_model(data, lookback=12, epochs=50)
+model, scaler = fit_rnn_model(data, lookback=12, epochs=100)
 predictions_12m = generate_rnn_predictions(model, scaler, lookback=12, periods=12)
-predictions_18m = generate_rnn_predictions(model, scaler, lookback=18,periods=18)
+

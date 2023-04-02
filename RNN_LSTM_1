@@ -52,10 +52,10 @@ def fit_lstm_model(data, lookback, epochs):
 def generate_lstm_predictions(model, scaler, lookback, periods):
     # Create a new DataFrame with future dates
     future_dates = pd.date_range(data.index[-1], periods=periods+1, freq="MS")[1:]
-    future_data = pd.DataFrame(index=future_dates, columns=data.columns)
+    future_data = pd.DataFrame(index=future_dates, columns=["predictions"])
 
     # Initialize the first input sequence for the LSTM prediction loop
-    last_sequence = data[-lookback:].values
+    last_sequence = data.iloc[-lookback:, 0].values.reshape(-1, 1)
 
     # Generate LSTM predictions for each future time period
     for i in range(periods):
@@ -78,6 +78,9 @@ def generate_lstm_predictions(model, scaler, lookback, periods):
         last_sequence = np.append(last_sequence[1:], [[y]], axis=0)
 
     return future_data
+
+
+
 
 # Fit an LSTM model on the entire dataset and generate predictions for the next 12, 18, and 60 months
 model, scaler = fit_lstm_model(data, lookback=12, epochs=100)

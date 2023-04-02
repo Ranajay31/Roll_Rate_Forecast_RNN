@@ -1,0 +1,84 @@
+import numpy as np
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from keras.models import Sequential
+from keras.layers import Dense, LSTM
+
+# Load the data into a pandas DataFrame
+data = pd.read_csv("path/to/data.csv")
+
+# Convert the date column to a datetime format
+data["date"] = pd.to_datetime(data["date"], format="%b-%Y")
+
+# Set the date column as the index of the DataFrame
+data.set_index("date", inplace=True)
+
+# Define a function to preprocess the data for LSTM input
+def preprocess_data(data, lookback):
+    # Scale the data to between 0 and 1
+    scaler = MinMaxScaler()
+    data = scaler.fit_transform(data)
+
+    # Create sequences of length lookback for input to the LSTM
+    X, y = [], []
+    for i in range(len(data)-lookback):
+        X.append(data[i:i+lookback])
+        y.append(data[i+lookback])
+    X = np.array(X)
+    y = np.array(y)
+
+    # Reshape the input sequences for input to the LSTM
+    X = np.reshape(X, (X.shape[0], lookback, 1))
+
+    return X, y, scaler
+
+# Define a function to create and fit an LSTM model on the data
+def fit_lstm_model(data, lookback, epochs):
+    # Preprocess the data for input to the LSTM
+    X, y, scaler = preprocess_data(data, lookback)
+
+    # Create and compile the LSTM model
+    model = Sequential()
+    model.add(LSTM(units=10, input_shape=(lookback, 1)))
+    model.add(Dense(units=1))
+    model.compile(optimizer="adam", loss="mean_squared_error")
+
+    # Fit the model to the data
+    model.fit(X, y, epochs=epochs, batch_size=32)
+
+    return model, scaler
+
+# Define a function to generate LSTM predictions for future time periods
+def generate_lstm_predictions(model, scaler, lookback, periods):
+    # Create a new DataFrame with future dates
+    future_dates = pd.date_range(data.index[-1], periods=periods+1, freq="MS")[1:]
+    future_data = pd.DataFrame(index=future_dates, columns=data.columns)
+
+    # Initialize the first input sequence for the LSTM prediction loop
+    last_sequence = data[-lookback:].values
+
+    # Generate LSTM predictions for each future time period
+    for i in range(periods):
+        # Scale the input sequence to between 0 and 1
+        scaled_sequence = scaler.transform(last_sequence)
+
+        # Reshape the input sequence for input to the LSTM
+        X = np.reshape(scaled_sequence, (1, lookback, 1))
+
+        # Generate the LSTM prediction for the next time period
+        y = model.predict(X)
+
+        # Inverse transform the predicted value to the original scale
+        y = scaler.inverse_transform(y)[0][0]
+
+        # Set the predicted value as the next value in the future data
+        future_data.iloc[i] = y
+
+        # Update the input sequence for the next prediction
+        last_sequence = np.append(last_sequence[1:], [[y]], axis=0)
+
+    return future_data
+
+# Fit an LSTM model on the entire dataset and generate predictions for the next 12, 18, and 60 months
+model, scaler = fit_lstm_model(data, lookback=12, epochs=100)
+predictions_12 = generate_lstm_predictions(model, scaler, lookback=12, periods=12)

@@ -1,0 +1,37 @@
+Sub CopyDataFromExternalFiles()
+    Dim originalWorkbook As Workbook
+    Dim dataCurrentMonth As Worksheet
+    Dim sourceWorkbookA As Workbook
+    Dim sourceWorkbookB As Workbook
+    Dim sourceDataA As Range
+    Dim sourceDataB As Range
+    Dim lastRowCurrentMonth As Long
+    
+    ' Set references to the original workbook and sheets
+    Set originalWorkbook = ThisWorkbook
+    Set dataCurrentMonth = originalWorkbook.Sheets("Data Current Month")
+    
+    ' Set references to external workbooks (replace file paths as needed)
+    Set sourceWorkbookA = Workbooks.Open("C:\Path\To\A.xlsx")
+    Set sourceWorkbookB = Workbooks.Open("C:\Path\To\B.xlsx")
+    
+    ' Set references to the data ranges in external workbooks (adjust sheet and range as needed)
+    Set sourceDataA = sourceWorkbookA.Sheets("Sheet1").UsedRange
+    Set sourceDataB = sourceWorkbookB.Sheets("Sheet1").UsedRange
+    
+    ' Find the last row with data in "Data Current Month" tab
+    lastRowCurrentMonth = dataCurrentMonth.Cells(dataCurrentMonth.Rows.Count, "A").End(xlUp).Row
+    
+    ' Copy data from external workbooks and paste it below the headers in "Data Current Month"
+    sourceDataA.Offset(1, 0).Resize(sourceDataA.Rows.Count - 1, sourceDataA.Columns.Count).Copy _
+        Destination:=dataCurrentMonth.Range("A" & lastRowCurrentMonth + 1)
+    
+    lastRowCurrentMonth = dataCurrentMonth.Cells(dataCurrentMonth.Rows.Count, "A").End(xlUp).Row ' Update last row
+    
+    sourceDataB.Offset(1, 0).Resize(sourceDataB.Rows.Count - 1, sourceDataB.Columns.Count).Copy _
+        Destination:=dataCurrentMonth.Range("A" & lastRowCurrentMonth + 1)
+    
+    ' Close external workbooks without saving changes
+    sourceWorkbookA.Close False
+    sourceWorkbookB.Close False
+End Sub

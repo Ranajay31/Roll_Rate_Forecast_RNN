@@ -1,0 +1,20 @@
+Sub MoveData()
+    Dim wsHistory As Worksheet
+    Dim wsCurrentMonth As Worksheet
+    Dim lastRowHistory As Long
+    Dim lastRowCurrentMonth As Long
+
+    ' Set references to the worksheets
+    Set wsHistory = ThisWorkbook.Sheets("Data History")
+    Set wsCurrentMonth = ThisWorkbook.Sheets("Data Current Month")
+
+    ' Find the last row with data in 'Data History' and 'Data Current Month'
+    lastRowHistory = wsHistory.Cells(wsHistory.Rows.Count, "A").End(xlUp).Row
+    lastRowCurrentMonth = wsCurrentMonth.Cells(wsCurrentMonth.Rows.Count, "A").End(xlUp).Row
+
+    ' Copy and paste data from 'Data Current Month' to 'Data History'
+    wsCurrentMonth.Range("A2:Z" & lastRowCurrentMonth).Cut wsHistory.Range("A" & lastRowHistory + 1)
+
+    ' Clear the data in 'Data Current Month' after moving
+    wsCurrentMonth.Range("A2:Z" & lastRowCurrentMonth).ClearContents
+End Sub
